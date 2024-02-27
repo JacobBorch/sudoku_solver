@@ -48,7 +48,6 @@ impl Solver {
 #[test]
 fn test_next_entry() {
     let grid = TextFileReader::load_grid("grid.txt").unwrap();
-    let solver = Solver::new(grid);
-    let next_entry = solver.next_entry_to_change();
+    let next_entry = Solver::next_entry_to_change(&grid);
     assert_eq!(next_entry, Some((0, 1)))
 }
