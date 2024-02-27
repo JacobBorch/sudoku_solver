@@ -2,11 +2,16 @@ use std::{fs::File, io::{self, BufRead}};
 
 use crate::Grid;
 
-trait GridLoader {
-    fn load_grid(file: &str) -> Grid;
+#[derive(Debug)]
+pub enum GridError {
+
 }
 
-struct TextFileReader { }
+pub trait GridLoader {
+    fn load_grid(file: &str) -> Result<Grid, GridError>;
+}
+
+pub struct TextFileReader { }
 
 impl TextFileReader {
     fn parse_line(line: &str) -> Vec<u8> {
@@ -19,7 +24,7 @@ impl TextFileReader {
 }
 
 impl GridLoader for TextFileReader {
-    fn load_grid(file: &str) -> Grid {
+    fn load_grid(file: &str) -> Result<Grid, GridError> {
         let file = File::open(file).expect("Couldn't find file");
         let reader = io::BufReader::new(file);
         let mut grid = Vec::new();
@@ -31,14 +36,14 @@ impl GridLoader for TextFileReader {
             grid.push(row);
         }
         assert_eq!(grid.len(), 9);
-        grid
+        Ok(grid)
     }
 }
 
 struct ImageReader {}
 
 impl GridLoader for ImageReader {
-    fn load_grid(file: &str) -> Grid {
+    fn load_grid(file: &str) -> Result<Grid, GridError> {
         todo!()
     }
 }
@@ -53,5 +58,5 @@ fn test_text_file_reader() {
     expected_grid[1][6] = 3;
     expected_grid[4][4] = 5;
     expected_grid[8][8] = 9;
-      assert_eq!(grid, expected_grid) 
+    assert_eq!(grid.unwrap(), expected_grid) 
 }
