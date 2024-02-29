@@ -48,11 +48,9 @@ impl GridLoader for ImageReader {
     }
 }
 
-const TEST_FILE: &str = "grid.txt";
-
 #[test]
 fn test_text_file_reader() {
-    let grid = TextFileReader::load_grid(TEST_FILE);
+    let grid = TextFileReader::load_grid("test_grids/grid.txt");
     let mut expected_grid = vec![vec![0; 9]; 9];
     expected_grid[0][0] = 1;
     expected_grid[1][6] = 3;
