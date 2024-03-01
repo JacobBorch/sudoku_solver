@@ -1,9 +1,12 @@
 use std::collections::HashSet;
 
-use crate::{grid::{GridLoader, TextFileReader}, Grid};
+use crate::{
+    grid::{GridLoader, TextFileReader},
+    Grid,
+};
 
 pub struct Solver {
-    grid: Grid
+    grid: Grid,
 }
 
 impl Solver {
@@ -15,9 +18,17 @@ impl Solver {
         Self::aux_solver(self.grid.clone())
     }
 
-
     fn extract_square(grid: &Grid, no: usize) -> Vec<u8> {
         let mut square = Vec::new();
+        let col = no % 3;
+        let row = no / 3;
+        let (x, y) = (row * 3, col * 3);
+        for dx in 0..3 {
+            for dy in 0..3 {
+                let entry = grid[x + dx][y + dy];
+                square.push(entry)
+            }
+        }
         square
     }
 
@@ -32,40 +43,54 @@ impl Solver {
 
     fn aux_solver(mut grid: Grid) -> Option<Grid> {
         if !Self::is_valid(&grid) {
-            return None
+            return None;
         }
         let next_entry = Self::next_entry_to_change(&grid);
         if next_entry.is_none() {
-            return Some(grid)
+            return Some(grid);
         }
         let (i, j) = next_entry.unwrap();
         for v in 1..=9 {
             grid[i][j] = v;
             let res = Self::aux_solver(grid.clone());
-            if res.is_some() { return Some(grid)}
+            if res.is_some() {
+                return Some(grid);
+            }
         }
         None
     }
     //Returns true if the row has any duplicate values (other than zero)
     fn has_duplicate(row: &Vec<u8>) -> bool {
-        let set = row.iter().filter(|&&x| x != 0).map(|&x| x).collect::<HashSet<u8>>();
+        let set = row
+            .iter()
+            .filter(|&&x| x != 0)
+            .map(|&x| x)
+            .collect::<HashSet<u8>>();
         row.iter().filter(|&&x| x != 0).count() != set.len()
     }
 
     fn is_valid(grid: &Grid) -> bool {
-        grid.iter().all(|row| !Solver::has_duplicate(row)) &&
-        (0..9).map(|j| Self::extract_col(grid, j)).all(|col| !Solver::has_duplicate(&col))
+        grid.iter().all(|row| !Solver::has_duplicate(row))
+            && (0..9)
+                .map(|j| Self::extract_col(grid, j))
+                .all(|col| !Solver::has_duplicate(&col))
+            && (0..9)
+                .map(|j| Self::extract_square(grid, j))
+                .all(|square| !Solver::has_duplicate(&square))
+    }
+
+    fn is_solved(grid: &Grid) -> bool {
+        todo!()
     }
 
     fn next_entry_to_change(grid: &Grid) -> Option<(usize, usize)> {
-        let a = grid.iter()
+        let a = grid
+            .iter()
             .enumerate()
             .flat_map(|(i, row)| row.iter().enumerate().map(move |(j, &v)| (i, j, v)))
             .find(|(_, _, v)| *v == 0);
         a.map(|(i, j, _)| (i, j))
     }
-
-    
 }
 
 lazy_static::lazy_static! {
@@ -73,6 +98,7 @@ lazy_static::lazy_static! {
     static ref INVALID_ROW_GRID: Grid = TextFileReader::load_grid("test_grids/invalid_row.txt").unwrap();
     static ref INVALID_COLUMN_GRID: Grid = TextFileReader::load_grid("test_grids/invalid_column.txt").unwrap();
     static ref INVALID_SQUARE_GRID: Grid = TextFileReader::load_grid("test_grids/invalid_square.txt").unwrap();
+    static ref SOLVABLE: Grid = TextFileReader::load_grid("test_grids/solvable.txt").unwrap();
 }
 
 #[test]
@@ -123,12 +149,19 @@ fn invalid_square() {
 fn extract_col_works() {
     let seventh_col = Solver::extract_col(&GRID, 6);
     let expected = vec![0, 3, 0, 0, 0, 0, 0, 0, 0];
-    assert_eq!(seventh_col, expected) 
+    assert_eq!(seventh_col, expected)
 }
 
 #[test]
 fn extract_square_works() {
-    let sixth_square = Solver::extract_square(&INVALID_SQUARE_GRID, 6);
+    let sixth_square = Solver::extract_square(&INVALID_SQUARE_GRID, 5);
     let expected = vec![1, 0, 0, 0, 0, 0, 0, 0, 1];
     assert_eq!(sixth_square, expected)
+}
+
+#[test]
+fn test_solve() {
+    let solver = Solver::new(SOLVABLE.clone());
+    let solution = solver.solve();
+    println!("{:?}", solution)
 }
