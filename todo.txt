@@ -1,0 +1,9 @@
+Solver:
+  Use multithreading
+  Use pruning methods
+  Other datastructures for grid
+  Dancing links(???)
+
+Other:
+  Load pictures of soduko
+  Interactive soduko tool
