@@ -33,12 +33,7 @@ impl Solver {
     }
 
     fn extract_col(grid: &Grid, j: usize) -> Vec<u8> {
-        let mut col = Vec::new();
-        for i in 0..grid.len() {
-            let entry = grid[i][j];
-            col.push(entry)
-        }
-        col
+        grid.iter().map(|row| row[j]).collect()
     }
 
     fn aux_solver(mut grid: Grid) -> Option<Grid> {
@@ -54,19 +49,15 @@ impl Solver {
             grid[i][j] = v;
             let res = Self::aux_solver(grid.clone());
             if res.is_some() {
-                return Some(grid);
+                return res;
             }
         }
         None
     }
     //Returns true if the row has any duplicate values (other than zero)
     fn has_duplicate(row: &Vec<u8>) -> bool {
-        let set = row
-            .iter()
-            .filter(|&&x| x != 0)
-            .map(|&x| x)
-            .collect::<HashSet<u8>>();
-        row.iter().filter(|&&x| x != 0).count() != set.len()
+        let it = row.iter().filter(|&&x| x != 0);
+        it.clone().collect::<HashSet<_>>().len() != it.collect::<Vec<_>>().len()
     }
 
     fn is_valid(grid: &Grid) -> bool {
@@ -79,17 +70,12 @@ impl Solver {
                 .all(|square| !Solver::has_duplicate(&square))
     }
 
-    fn is_solved(grid: &Grid) -> bool {
-        todo!()
-    }
-
     fn next_entry_to_change(grid: &Grid) -> Option<(usize, usize)> {
-        let a = grid
-            .iter()
+        grid.iter()
             .enumerate()
             .flat_map(|(i, row)| row.iter().enumerate().map(move |(j, &v)| (i, j, v)))
-            .find(|(_, _, v)| *v == 0);
-        a.map(|(i, j, _)| (i, j))
+            .find(|(_, _, v)| *v == 0)
+            .map(|(i, j, _)| (i, j))
     }
 }
 
@@ -163,5 +149,6 @@ fn extract_square_works() {
 fn test_solve() {
     let solver = Solver::new(SOLVABLE.clone());
     let solution = solver.solve();
-    println!("{:?}", solution)
+    let is_valid_solution = Solver::is_valid(&solution.unwrap());
+    assert!(is_valid_solution)
 }
